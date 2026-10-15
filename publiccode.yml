@@ -1,0 +1,77 @@
+publiccodeYmlVersion: 0.5.0
+name: ge-televerse-back
+applicationSuite: GE-Televerse
+url: https://github.com/republique-et-canton-de-geneve/ge-televerse-back
+releaseDate: 2026-10-07
+platforms:
+  - web
+categories:
+  - document-management
+usedBy:
+  - Canton de Genève
+developmentStatus: development
+softwareType: standalone/backend
+organisation:
+  uri: https://ld.admin.ch/canton/25
+  name: Genève
+description:
+  fr-FR:
+    localisedName: ge-televerse-back
+    shortDescription: Application mobile de téléversement de documents pour les
+      formulaires en ligne de l'État de Genève (partie backend)
+    longDescription: >-
+      GE-Televerse permet à un usager de scanner un document papier depuis son
+      téléphone et de le rattacher directement à un formulaire en ligne ouvert
+      sur son ordinateur. Le flux est le suivant :
+
+      - L'application hôte intègre un web component (bouton). Au clic, celui-ci
+      ouvre un popup vide de façon synchrone (hors du geste utilisateur, le
+      navigateur le bloquerait), puis appelle lui-même POST /api/sessions depuis
+      la page hôte.
+
+      - C'est donc le navigateur qui estampille l'Origin réel du formulaire sur
+      la création de session — infalsifiable côté usager, et c'est lui qui
+      gouverne le profil de taille côté serveur. Le web component redirige
+      ensuite le popup vers le SPA GE-Televerse en lui passant le token reçu
+      (?token=…).
+
+      - Le SPA affiche le QR code pointant l'uploadUrl renvoyée.
+
+      - L'usager scanne le QR code avec son téléphone, ce qui ouvre la page
+      d'upload mobile.
+
+      - L'usager prend des photos ou sélectionne des fichiers — ceux-ci sont
+      envoyés au backend.
+
+      - Le backend scanne le fichier via ClamAV, puis le convertit en PDF
+      (redimensionnement, compression, recompression et découpe Ghostscript des
+      PDF multi-pages), stocke chaque page dans S3 et notifie le SPA en temps
+      réel via Server-Sent Events (SSE).
+
+      - L'usager revient sur le SPA desktop pour réviser, réordonner, éditer
+      (rotation, balance des blancs, correction de perspective) et finaliser la
+      session.
+
+      - Le SPA transmet le documentId du PDF final au web component via
+      window.postMessage(), qui émet un événement DOM vers l'application hôte.
+
+      - L'application hôte récupère le PDF via GET /api/documents/{documentId}
+      en présentant un JWT OIDC (audience AEL.TELEVERSE). Cet appel est one-shot
+      : le PDF est supprimé de S3 dès que la réponse a été envoyée avec succès.
+    documentation: https://github.com/republique-et-canton-de-geneve/ge-televerse-back#configuration
+    apiDocumentation: https://github.com/republique-et-canton-de-geneve/ge-televerse-back/blob/opensource/docs/api.md
+    features:
+      - scan de documents
+      - téléversement de documents
+legal:
+  license: Apache-2.0
+maintenance:
+  type: internal
+  contacts:
+    - name: Imade Benrouijal
+      email: imade.benrouijal@etat.ge.ch
+      affiliation: État de Genève - OCSIN
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - fr
